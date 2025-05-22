@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Klasifikasi pH - Sistem Baru</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .title {
+            color: #5a67d8;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .difficulty-selection {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .difficulty-title {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-card {
+            background: white;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .difficulty-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .difficulty-card.easy {
+            border-color: #68d391;
+        }
+
+        .difficulty-card.medium {
+            border-color: #fbd38d;
+        }
+
+        .difficulty-card.hard {
+            border-color: #fc8181;
+        }
+
+        .difficulty-card.selected {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .difficulty-card.easy.selected {
+            background: #c6f6d5;
+            border-color: #38a169;
+        }
+
+        .difficulty-card.medium.selected {
+            background: #faf1e4;
+            border-color: #d69e2e;
+        }
+
+        .difficulty-card.hard.selected {
+            background: #fed7d7;
+            border-color: #e53e3e;
+        }
+
+        .difficulty-label {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .difficulty-info {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .start-btn {
+            background: #5a67d8;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .start-btn:hover {
+            background: #4c51bf;
+        }
+
+        .start-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .timer-container {
+            background: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .timer-container.warning {
+            background: #e53e3e;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .progress-info {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .progress-container {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 8px;
+            margin: 20px 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .answer-status {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .answer-status.unanswered {
+            background: #e2e8f0;
+            color: #666;
+            border: 2px solid #cbd5e0;
+        }
+
+        .answer-status.answered {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 2px solid #68d391;
+        }
+
+        .answer-status.current {
+            background: #bee3f8;
+            color: #2a69ac;
+            border: 2px solid #4299e1;
+            transform: scale(1.1);
+        }
+
+        .question-container {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .question-number {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .substance-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .answer-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .answer-option {
+            padding: 15px 25px;
+            border: 3px solid transparent;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            background: white;
+        }
+
+        .answer-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .answer-option.acid {
+            border-color: #fc8181;
+            color: #c53030;
+        }
+
+        .answer-option.neutral {
+            border-color: #4fd1c7;
+            color: #285e61;
+        }
+
+        .answer-option.base {
+            border-color: #81c784;
+            color: #2e7d32;
+        }
+
+        .answer-option.selected {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .answer-option.acid.selected {
+            background: #fed7d7;
+        }
+
+        .answer-option.neutral.selected {
+            background: #e6fffa;
+        }
+
+        .answer-option.base.selected {
+            background: #e8f5e8;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: #718096;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #4a5568;
+        }
+
+        .nav-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .submit-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: #38a169;
+        }
+
+        .submit-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .results-container {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .final-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #5a67d8;
+            margin: 20px 0;
+        }
+
+        .score-breakdown {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .score-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+        }
+
+        .restart-btn {
+            background: #5a67d8;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            background: #4c51bf;
+        }
+
+        .time-up-message {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+            }
+            
+            .difficulty-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .difficulty-card {
+                min-width: 250px;
+            }
+            
+            .answer-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .answer-option {
+                min-width: 200px;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen">
+            <div class="header">
+                <h1 class="title">🧪 Game Klasifikasi pH 🧪</h1>
+                <p>Uji kemampuan Anda dalam mengklasifikasikan zat kimia!</p>
+            </div>
+
+            <div class="difficulty-selection">
+                <h2 class="difficulty-title">Pilih Tingkat Kesulitan</h2>
+                <div class="difficulty-options">
+                    <div class="difficulty-card easy" onclick="selectDifficulty('easy')">
+                        <div class="difficulty-label">🟢 Mudah</div>
+                        <div class="difficulty-info">
+                            10 soal<br>
+                            120 detik (2 menit)<br>
+                            Zat-zat umum
+                        </div>
+                    </div>
+                    <div class="difficulty-card medium" onclick="selectDifficulty('medium')">
+                        <div class="difficulty-label">🟡 Sedang</div>
+                        <div class="difficulty-info">
+                            15 soal<br>
+                            180 detik (3 menit)<br>
+                            Zat campuran
+                        </div>
+                    </div>
+                    <div class="difficulty-card hard" onclick="selectDifficulty('hard')">
+                        <div class="difficulty-label">🔴 Sulit</div>
+                        <div class="difficulty-info">
+                            20 soal<br>
+                            240 detik (4 menit)<br>
+                            Semua zat
+                        </div>
+                    </div>
+                </div>
+                <button class="start-btn" id="startBtn" onclick="startGame()" disabled>
+                    Mulai Permainan
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" style="display: none;">
+            <div class="game-header">
+                <div class="timer-container" id="timer">⏰ 0:00</div>
+                <div class="progress-info">
+                    <span id="answeredCount">0</span>/<span id="totalQuestions">0</span> dijawab
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="answer-grid" id="answerGrid"></div>
+
+            <div class="question-container">
+                <div class="question-number" id="questionNumber">Pertanyaan 1</div>
+                <div class="substance-name" id="substanceName">Loading...</div>
+                <div class="answer-options">
+                    <div class="answer-option acid" onclick="selectAnswer('asam')">
+                        🍋 Asam
+                    </div>
+                    <div class="answer-option neutral" onclick="selectAnswer('netral')">
+                        💧 Netral
+                    </div>
+                    <div class="answer-option base" onclick="selectAnswer('basa')">
+                        🧼 Basa
+                    </div>
+                </div>
+            </div>
+
+            <div class="navigation">
+                <button class="nav-btn" id="prevBtn" onclick="previousQuestion()">
+                    ← Sebelumnya
+                </button>
+                <button class="submit-btn" id="submitBtn" onclick="submitAnswers()" disabled>
+                    Submit Jawaban
+                </button>
+                <button class="nav-btn" id="nextBtn" onclick="nextQuestion()">
+                    Selanjutnya →
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" style="display: none;">
+            <h2>🎉 Hasil Permainan 🎉</h2>
+            <div class="final-score" id="finalScoreDisplay">0</div>
+            
+            <div class="score-breakdown" id="scoreBreakdown">
+                <!-- Score details will be populated here -->
+            </div>
+
+            <div id="timeUpMessage" class="time-up-message" style="display: none;">
+                ⏰ Waktu habis! Jawaban yang sudah diisi akan dinilai.
+            </div>
+
+            <button class="restart-btn" onclick="restartGame()">
+                Main Lagi
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const substances = [
+            { name: "Cuka Dapur", type: "asam", ph: "2.5", category: "easy" },
+            { name: "Air Jeruk Nipis", type: "asam", ph: "2.0", category: "easy" },
+            { name: "Kopi Hitam", type: "asam", ph: "5.0", category: "easy" },
+            { name: "Air Murni", type: "netral", ph: "7.0", category: "easy" },
+            { name: "Susu Segar", type: "netral", ph: "6.8", category: "easy" },
+            { name: "Sabun Mandi", type: "basa", ph: "9.0", category: "easy" },
+            { name: "Soda Kue", type: "basa", ph: "9.0", category: "easy" },
+            { name: "Amonia", type: "basa", ph: "11.0", category: "easy" },
+            { name: "Teh Hijau", type: "asam", ph: "6.0", category: "easy" },
+            { name: "Air Lemon", type: "asam", ph: "2.2", category: "easy" },
+            { name: "Pasta Gigi", type: "basa", ph: "8.5", category: "medium" },
+            { name: "Air Kelapa", type: "netral", ph: "6.5", category: "medium" },
+            { name: "Deterjen", type: "basa", ph: "10.0", category: "medium" },
+            { name: "Yogurt", type: "asam", ph: "4.5", category: "medium" },
+            { name: "Minuman Soda", type: "asam", ph: "3.0", category: "medium" },
+            { name: "Air Kapur", type: "basa", ph: "12.0", category: "hard" },
+            { name: "Cairan Lambung", type: "asam", ph: "1.5", category: "hard" },
+            { name: "Putih Telur", type: "basa", ph: "8.0", category: "hard" },
+            { name: "Air Hujan", type: "asam", ph: "5.6", category: "hard" },
+            { name: "Cairan Empedu", type: "basa", ph: "8.5", category: "hard" },
+            { name: "Jus Anggur", type: "asam", ph: "3.5", category: "medium" },
+            { name: "Air Cucian Beras", type: "netral", ph: "6.0", category: "medium" },
+            { name: "Cairan Pembersih Kaca", type: "basa", ph: "10.5", category: "hard" },
+            { name: "Jus Tomat", type: "asam", ph: "4.0", category: "medium" },
+            { name: "Larutan Garam", type: "netral", ph: "7.0", category: "easy" }
+        ];
+
+        let gameState = {
+            difficulty: null,
+            questions: [],
+            currentIndex: 0,
+            answers: {},
+            timeLeft: 0,
+            timerInterval: null,
+            totalQuestions: 0,
+            isGameActive: false,
+            timeUp: false
+        };
+
+        const difficultySettings = {
+            easy: { questions: 10, time: 120, categories: ['easy'] },
+            medium: { questions: 15, time: 180, categories: ['easy', 'medium'] },
+            hard: { questions: 20, time: 240, categories: ['easy', 'medium', 'hard'] }
+        };
+
+        function selectDifficulty(level) {
+            // Remove selection from all cards
+            document.querySelectorAll('.difficulty-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            document.querySelector(`.difficulty-card.${level}`).classList.add('selected');
+            
+            gameState.difficulty = level;
+            document.getElementById('startBtn').disabled = false;
+        }
+
+        function startGame() {
+            if (!gameState.difficulty) return;
+            
+            const settings = difficultySettings[gameState.difficulty];
+            gameState.totalQuestions = settings.questions;
+            gameState.timeLeft = settings.time;
+            gameState.answers = {};
+            gameState.currentIndex = 0;
+            gameState.isGameActive = true;
+            gameState.timeUp = false;
+            
+            // Filter and shuffle substances
+            const availableSubstances = substances.filter(s => 
+                settings.categories.includes(s.category)
+            );
+            gameState.questions = shuffleArray(availableSubstances).slice(0, settings.questions);
+            
+            // Switch to game screen
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            // Initialize game display
+            document.getElementById('totalQuestions').textContent = gameState.totalQuestions;
+            createAnswerGrid();
+            displayQuestion();
+            startTimer();
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function createAnswerGrid() {
+            const grid = document.getElementById('answerGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < gameState.totalQuestions; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'answer-status unanswered';
+                cell.textContent = i + 1;
+                cell.onclick = () => goToQuestion(i);
+                grid.appendChild(cell);
+            }
+            updateAnswerGrid();
+        }
+
+        function updateAnswerGrid() {
+            const cells = document.querySelectorAll('.answer-status');
+            cells.forEach((cell, index) => {
+                cell.className = 'answer-status';
+                if (index === gameState.currentIndex) {
+                    cell.classList.add('current');
+                } else if (gameState.answers[index] !== undefined) {
+                    cell.classList.add('answered');
+                } else {
+                    cell.classList.add('unanswered');
+                }
+            });
+            
+            // Update answered count
+            const answeredCount = Object.keys(gameState.answers).length;
+            document.getElementById('answeredCount').textContent = answeredCount;
+            
+            // Update progress bar
+            const progress = (answeredCount / gameState.totalQuestions) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            // Enable/disable submit button
+            document.getElementById('submitBtn').disabled = answeredCount < gameState.totalQuestions;
+        }
+
+        function displayQuestion() {
+            const question = gameState.questions[gameState.currentIndex];
+            document.getElementById('questionNumber').textContent = 
+                `Pertanyaan ${gameState.currentIndex + 1} dari ${gameState.totalQuestions}`;
+            document.getElementById('substanceName').textContent = question.name;
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = gameState.currentIndex === 0;
+            document.getElementById('nextBtn').disabled = gameState.currentIndex === gameState.totalQuestions - 1;
+            
+            // Show current answer selection
+            const currentAnswer = gameState.answers[gameState.currentIndex];
+            document.querySelectorAll('.answer-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            if (currentAnswer) {
+                const optionMap = { 'asam': 'acid', 'netral': 'neutral', 'basa': 'base' };
+                document.querySelector(`.answer-option.${optionMap[currentAnswer]}`).classList.add('selected');
+            }
+            
+            updateAnswerGrid();
+        }
+
+        function selectAnswer(answer) {
+            if (!gameState.isGameActive) return;
+            
+            gameState.answers[gameState.currentIndex] = answer;
+            
+            // Update visual selection
+            document.querySelectorAll('.answer-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            updateAnswerGrid();
+        }
+
+        function goToQuestion(index) {
+            if (!gameState.isGameActive) return;
+            gameState.currentIndex = index;
+            displayQuestion();
+        }
+
+        function previousQuestion() {
+            if (gameState.currentIndex > 0) {
+                gameState.currentIndex--;
+                displayQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (gameState.currentIndex < gameState.totalQuestions - 1) {
+                gameState.currentIndex++;
+                displayQuestion();
+            }
+        }
+
+        function startTimer() {
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimerDisplay();
+                
+                if (gameState.timeLeft <= 0) {
+                    gameState.timeUp = true;
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(gameState.timeLeft / 60);
+            const seconds = gameState.timeLeft % 60;
+            const display = `⏰ ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            const timer = document.getElementById('timer');
+            timer.textContent = display;
+            
+            if (gameState.timeLeft <= 30) {
+                timer.classList.add('warning');
+            }
+        }
+
+        function submitAnswers() {
+            if (Object.keys(gameState.answers).length < gameState.totalQuestions) {
+                alert('Harap jawab semua pertanyaan sebelum submit!');
+                return;
+            }
+            
+            endGame();
+        }
+
+        function endGame() {
+            gameState.isGameActive = false;
+            clearInterval(gameState.timerInterval);
+            
+            // Calculate score
+            let correctAnswers = 0;
+            gameState.questions.forEach((question, index) => {
+                if (gameState.answers[index] === question.type) {
+                    correctAnswers++;
+                }
+            });
+            
+            const answeredQuestions = Object.keys(gameState.answers).length;
+            const baseScore = answeredQuestions > 0 ? (correctAnswers / answeredQuestions) * 100 : 0;
+            const finalScore = Math.round(baseScore);
+            
+            // Show results
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('resultsScreen').style.display = 'block';
+            document.getElementById('finalScoreDisplay').textContent = finalScore;
+            
+            // Show time up message if applicable
+            if (gameState.timeUp) {
+                document.getElementById('timeUpMessage').style.display = 'block';
+            }
+            
+            // Show score breakdown
+            const breakdown = document.getElementById('scoreBreakdown');
+            breakdown.innerHTML = `
+                <div class="score-item">
+                    <span>Jawaban Benar:</span>
+                    <span>${correctAnswers}</span>
+                </div>
+                <div class="score-item">
+                    <span>Total Soal Dijawab:</span>
+                    <span>${answeredQuestions}</span>
+                </div>
+                <div class="score-item">
+                    <span>Total Soal:</span>
+                    <span>${gameState.totalQuestions}</span>
+                </div>
+                <div class="score-item">
+                    <span>Tingkat Kesulitan:</span>
+                    <span>${gameState.difficulty.charAt(0).toUpperCase() + gameState.difficulty.slice(1)}</span>
+                </div>
+                <div class="score-item">
+                    <span>Skor Akhir:</span>
+                    <span>${finalScore}/100</span>
+                </div>
+            `;
+        }
+
+        function restartGame() {
+            // Reset game state
+            gameState = {
+                difficulty: null,
+                questions: [],
+                currentIndex: 0,
+                answers: {},
+                timeLeft: 0,
+                timerInterval: null,
+                totalQuestions: 0,
+                isGameActive: false,
+                timeUp: false
+            };
+            
+            // Reset UI
+            document.getElementById('resultsScreen').style.display = 'none';
+            document.getElementById('welcomeScreen').style.display = 'block';
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('timeUpMessage').style.display = 'none';
+            
+            // Reset difficulty selection
+            document.querySelectorAll('.difficulty-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Reset timer display
+            document.getElementById('timer').classList.remove('warning');
+        }
+
+        // Initialize the game
+        window.onload = function() {
+            restartGame();
+        };
+    </script>
+</body>
+</html>
